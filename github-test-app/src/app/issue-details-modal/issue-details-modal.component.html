@@ -1,0 +1,25 @@
+<h1 mat-dialog-title>{{issueDetails?.title}}</h1>
+<div mat-dialog-content>
+  <mat-spinner *ngIf="!issueDetails"></mat-spinner>
+  <table *ngIf="issueDetails">
+    <tr>
+      <td>Status:</td>
+      <td>{{issueDetails.state}}</td>
+    </tr>
+    <tr>
+      <td>Created:</td>
+      <td>{{issueDetails.created_at | date}}</td>
+    </tr>
+    <tr>
+      <td>Updated:</td>
+      <td>{{issueDetails.updated_at | date}}</td>
+    </tr>
+    <tr>
+      <td>Comments:</td>
+      <td>{{issueDetails.comments}}</td>
+    </tr>
+  </table>
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="onClose()">Close</button>
+</div>

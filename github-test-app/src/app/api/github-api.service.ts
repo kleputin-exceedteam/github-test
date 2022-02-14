@@ -15,6 +15,14 @@ export interface GithubIssue {
   title: string;
 }
 
+export interface IssueDetails {
+  state: string;
+  created_at: string;
+  updated_at: string;
+  comments: number;
+  title: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -33,5 +41,9 @@ export class GitHubIssuesApiService {
     };
 
     return this.httpClient.get<GithubIssuesDTO>(`${this.baseUrl}/search/issues`, { params });
+  }
+
+  getIssueDetails(id: string): Observable<IssueDetails> {
+    return this.httpClient.get<IssueDetails>(`${this.baseUrl}/repos/angular/components/issues/${id}`);
   }
 }

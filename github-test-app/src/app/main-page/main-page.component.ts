@@ -1,9 +1,14 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
 import { Sort } from '@angular/material/sort';
-import { GithubIssue, GitHubIssuesApiService } from '../api/github-api.service';
+import { PageEvent } from '@angular/material/paginator';
+import { MatDialog } from '@angular/material/dialog';
 import { BehaviorSubject, of, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil } from 'rxjs/operators';
-import { PageEvent } from '@angular/material/paginator';
+import { GithubIssue, GitHubIssuesApiService, GithubIssuesDTO } from '../api/github-api.service';
+import { IssueDetailsModalComponent } from '../issue-details-modal/issue-details-modal.component';
+import { NoopScrollStrategy } from '@angular/cdk/overlay';
 
 @Component({
   selector: 'app-main-page',
@@ -42,9 +47,15 @@ export class MainPageComponent implements OnInit, OnDestroy {
   isLoadingResults = true;
   isRateLimitReached = false;
 
-  constructor(private readonly gitHubIssuesApiService: GitHubIssuesApiService) {}
+  constructor(
+    private readonly gitHubIssuesApiService: GitHubIssuesApiService,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly dialog: MatDialog,
+    private readonly location: Location
+  ) {}
 
   ngOnInit() {
+    this.handleRouteWithModalWindow();
     this.updateDataEventBus$.pipe(
       takeUntil(this.destroy$),
       switchMap(
@@ -60,24 +71,24 @@ export class MainPageComponent implements OnInit, OnDestroy {
           )
         }
       )
-    ).subscribe(
-      data => {
-        this.isRateLimitReached = data === null;
-
-        if (data === null) {
-          this.data = [];
-          return;
-        }
-
-        this.resultsLength = data.total_count;
-        this.data = data.items;
-        this.isLoadingResults = false;
-      }
-    );
+    ).subscribe(data => this.onDataUpdate(data));
   }
 
   ngOnDestroy() {
     this.destroy$.next(true);
+  }
+
+  private onDataUpdate(data: GithubIssuesDTO | null) {
+    this.isRateLimitReached = data === null;
+
+    if (data === null) {
+      this.data = [];
+      return;
+    }
+
+    this.resultsLength = data.total_count;
+    this.data = data.items;
+    this.isLoadingResults = false;
   }
 
   onSortChange(event: Sort) {
@@ -94,6 +105,23 @@ export class MainPageComponent implements OnInit, OnDestroy {
   onStateFilterChange() {
     this.paginatorState.pageIndex = 0;
     this.updateDataEventBus$.next(true);
+  }
+
+  handleRouteWithModalWindow() {
+    const routeSnapshot = this.activatedRoute.snapshot;
+    const { id } = routeSnapshot.params;
+    if (id) {
+      this.openModal(id);
+    }
+  }
+
+  onSelectIssue(row: { number: number }) {
+    this.location.go(`issue/${row.number}`);
+    this.openModal(row.number);
+  }
+
+  openModal(id: number) {
+    this.dialog.open(IssueDetailsModalComponent, { data: { id }, scrollStrategy: new NoopScrollStrategy() });
   }
 }
 
