@@ -3,6 +3,7 @@ import { Sort } from '@angular/material/sort';
 import { GithubIssue, GitHubIssuesApiService } from '../api/github-api.service';
 import { BehaviorSubject, of, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil } from 'rxjs/operators';
+import { PageEvent } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-main-page',
@@ -20,11 +21,22 @@ export class MainPageComponent implements OnInit, OnDestroy {
   paginatorState = {
     pageIndex: 0
   }
-
   sortState: Sort = {
     active: 'created',
     direction: 'asc'
   }
+  readonly stateFilterOptions = [{
+    value: 'all',
+    displayText: 'All'
+  }, {
+    value: 'open',
+    displayText: 'Open'
+  }, {
+    value: 'closed',
+    displayText: 'Closed'
+  }];
+
+  stateFilter = 'all';
 
   resultsLength = 0;
   isLoadingResults = true;
@@ -36,11 +48,17 @@ export class MainPageComponent implements OnInit, OnDestroy {
     this.updateDataEventBus$.pipe(
       takeUntil(this.destroy$),
       switchMap(
-        () =>
-          this.gitHubIssuesApiService.getIssues(this.sortState.active, this.sortState.direction, this.paginatorState.pageIndex)
-            .pipe(
-              catchError(() => of(null))
-            )
+        () => {
+          this.isLoadingResults = true;
+          return this.gitHubIssuesApiService.getIssues(
+            this.sortState.active,
+            this.sortState.direction,
+            this.paginatorState.pageIndex,
+            this.stateFilter
+          ).pipe(
+            catchError(() => of(null))
+          )
+        }
       )
     ).subscribe(
       data => {
@@ -68,7 +86,13 @@ export class MainPageComponent implements OnInit, OnDestroy {
     this.updateDataEventBus$.next(true);
   }
 
-  onPageChange() {
+  onPageChange(event: PageEvent) {
+    this.paginatorState.pageIndex = event.pageIndex;
+    this.updateDataEventBus$.next(true);
+  }
+
+  onStateFilterChange() {
+    this.paginatorState.pageIndex = 0;
     this.updateDataEventBus$.next(true);
   }
 }

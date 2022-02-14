@@ -23,9 +23,10 @@ export class GitHubIssuesApiService {
 
   constructor(private httpClient: HttpClient) {}
 
-  getIssues(sort: string, order: SortDirection, page: number): Observable<GithubIssuesDTO> {
+  getIssues(sort: string, order: SortDirection, page: number, stateFilter: string): Observable<GithubIssuesDTO> {
+    const stateFilterQueryRequest = stateFilter === 'all' ? '' : `is:${stateFilter}`;
     const params = {
-      q: 'repo:angular/components',
+      q: `repo:angular/components ${stateFilterQueryRequest}`,
       sort,
       order,
       page: page + 1
