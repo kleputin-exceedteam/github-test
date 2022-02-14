@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { NoopScrollStrategy } from '@angular/cdk/overlay';
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { Sort } from '@angular/material/sort';
@@ -8,7 +9,6 @@ import { BehaviorSubject, of, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil } from 'rxjs/operators';
 import { GithubIssue, GitHubIssuesApiService, GithubIssuesDTO } from '../api/github-api.service';
 import { IssueDetailsModalComponent } from '../issue-details-modal/issue-details-modal.component';
-import { NoopScrollStrategy } from '@angular/cdk/overlay';
 
 @Component({
   selector: 'app-main-page',
@@ -54,7 +54,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
     private readonly location: Location
   ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.handleRouteWithModalWindow();
     this.updateDataEventBus$.pipe(
       takeUntil(this.destroy$),
@@ -74,11 +74,11 @@ export class MainPageComponent implements OnInit, OnDestroy {
     ).subscribe(data => this.onDataUpdate(data));
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.destroy$.next(true);
   }
 
-  private onDataUpdate(data: GithubIssuesDTO | null) {
+  private onDataUpdate(data: GithubIssuesDTO | null): void {
     this.isRateLimitReached = data === null;
 
     if (data === null) {
@@ -91,23 +91,23 @@ export class MainPageComponent implements OnInit, OnDestroy {
     this.isLoadingResults = false;
   }
 
-  onSortChange(event: Sort) {
+  onSortChange(event: Sort): void {
     this.sortState = event;
     this.paginatorState.pageIndex = 0;
     this.updateDataEventBus$.next(true);
   }
 
-  onPageChange(event: PageEvent) {
+  onPageChange(event: PageEvent): void {
     this.paginatorState.pageIndex = event.pageIndex;
     this.updateDataEventBus$.next(true);
   }
 
-  onStateFilterChange() {
+  onStateFilterChange(): void {
     this.paginatorState.pageIndex = 0;
     this.updateDataEventBus$.next(true);
   }
 
-  handleRouteWithModalWindow() {
+  handleRouteWithModalWindow(): void {
     const routeSnapshot = this.activatedRoute.snapshot;
     const { id } = routeSnapshot.params;
     if (id) {
@@ -115,12 +115,12 @@ export class MainPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  onSelectIssue(row: { number: number }) {
+  onSelectIssue(row: { number: number }): void {
     this.location.go(`issue/${row.number}`);
     this.openModal(row.number);
   }
 
-  openModal(id: number) {
+  openModal(id: number): void {
     this.dialog.open(IssueDetailsModalComponent, { data: { id }, scrollStrategy: new NoopScrollStrategy() });
   }
 }

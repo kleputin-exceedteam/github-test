@@ -1,8 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { GitHubIssuesApiService, IssueDetails } from '../api/github-api.service';
 import { Location } from '@angular/common';
-import { delay } from 'rxjs/operators';
+import { GitHubIssuesApiService, IssueDetails } from '../api/github-api.service';
 
 @Component({
   selector: 'app-issue-details-modal',
@@ -20,10 +19,10 @@ export class IssueDetailsModalComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.githubIssuesApiService.getIssueDetails(this.data.id).pipe(delay(1000)).subscribe(data => this.issueDetails = data);
+    this.githubIssuesApiService.getIssueDetails(this.data.id).subscribe(data => this.issueDetails = data);
   }
 
-  onClose() {
+  onClose(): void {
     this.dialogRef.close();
     this.location.go(`issues`);
   }
